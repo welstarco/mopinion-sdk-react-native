@@ -938,22 +938,22 @@ export class Mopinion extends React.Component {
 						onPressLeft={() => this.toggleModal()}
 						title={!this.state.formIsFullySubmmitted ? this.state.formConfig.properties.title : this.state.formConfig.text.lastPageTitle ? this.state.formConfig.text.lastPageTitle : this.state.formConfig.properties.title}
 					/>
-					<ScrollView
-						style={styles.container}
-						automaticallyAdjustContentInsets
-						contentInsetAdjustmentBehavior="automatic"
-						contentContainerStyle={{
-							flexGrow:1, 
-							justifyContent:'flex-start', 
-							...(Platform.OS === 'android' && {paddingBottom:24})
-						}}
-						ref='_scrollView'
-						onScroll={this.handleScroll}
-						scrollEventThrottle={50}
-						scrollEnabled={!this.state.isSwiping}
+					<SafeAreaView style={{flex:1}}>
+						<ScrollView
+							style={styles.container}
+							automaticallyAdjustContentInsets
+							contentInsetAdjustmentBehavior="automatic"
+							contentContainerStyle={{
+								flexGrow:1, 
+								justifyContent:'flex-start', 
+								...(Platform.OS === 'android' && {paddingBottom:24})
+							}}
+							ref='_scrollView'
+							onScroll={this.handleScroll}
+							scrollEventThrottle={50}
+							scrollEnabled={!this.state.isSwiping}
 
-					>
-						<SafeAreaView style={{flex:1}}>
+						>
 							<Animated.View
 								style={{
 									flex:1,
@@ -965,8 +965,8 @@ export class Mopinion extends React.Component {
 									: this.state.configWasLoaded ? this.getPage() : this.loading()
 								}
 							</Animated.View>
-						</SafeAreaView>
-					</ScrollView>
+						</ScrollView>
+					</SafeAreaView>
 				</Modal>
 			</ThemeProvider>
 		);

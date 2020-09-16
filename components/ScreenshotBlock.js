@@ -1,6 +1,6 @@
 import React from 'react';
 // import PropTypes from 'prop-types';
-import { Dimensions, Modal, View, StyleSheet, Image, TouchableHighlight, TouchableOpacity } from 'react-native';
+import { Dimensions, Modal, View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Control from './Control';
 import ErrorMessage from './ErrorMessage';
 
