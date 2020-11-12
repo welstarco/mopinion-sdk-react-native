@@ -21,9 +21,8 @@ export async function testRuleConditions(rule,event) {
 		// 	    });
 		// },
 		percentage(perc) {
-			const nth = (n) => { return Math.floor(Math.random() * n) + 1 };
-			let n = Math.floor(100/perc);
-			return n === nth(n)
+			let rndval = Math.random() * 100;
+			return rndval < perc;
 		},
 		target(targetArr) {
 			const testTarget = (target) => {
