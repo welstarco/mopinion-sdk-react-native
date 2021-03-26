@@ -116,7 +116,9 @@ class Rating extends Component {
     if(this.props.data.properties.showCaptions) {
       if(this.state.labelHeight.length < this.labelRefs.length) {
         this.labelRefs.forEach( (ref,i) => {
-          if(i>=tmp_labelHeights.length && typeof this.refs[ref] !== 'undefined') {
+          if(i>=tmp_labelHeights.length 
+             && typeof this.refs[ref] !== 'undefined'
+             && typeof this.refs[ref].measure !== 'undefined') {
             this.refs[ref].measure((ox, oy, width, height, px, py) => {
               // if a label is not visible, the height will be 0. Don't set labelHeights for invisible items!
               if(height>0) { 
