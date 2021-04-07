@@ -3,6 +3,137 @@ import React from 'react';
 import { Dimensions, Modal, View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Control from './Control';
 import ErrorMessage from './ErrorMessage';
+import Button from './Button';
+
+import * as ImagePicker from 'react-native-image-picker';
+
+// to select the default screenshot or an image from the photo library
+// if the user selects an image, the button changes face to revert to default screenshot
+class ImagePickerControl extends React.Component {
+      
+  static defaultProps = {
+    pickLabel:'Pick',
+    undoLabel:'Undo',
+    maxImageWidth:180,
+    maxImageHeight:320,
+  };
+
+  constructor(props) {
+	super(props);
+	
+	this.state = {
+		visible:true,
+		enableUndo:false,
+		imagePickerResponse:null
+	};
+
+  }
+
+	updateParentState() {
+//       const value = this.state[this.props.data.typeName].selected ? this.state[this.props.data.typeName].value : '';
+//       this.props.onFormGroupValueChange(value, data);
+		// callback to pass the selected image type and uri 
+		if (typeof this.props.onImagePicked === 'function') {
+			if(this.state.imagePickerResponse !== null) {
+				this.props.onImagePicked(this.state.imagePickerResponse.type, this.state.imagePickerResponse.uri);
+			} else {
+				this.props.onImagePicked(null, null);
+			}
+		}
+	}
+	
+	setImagePickerResponse(response) {
+	    this.setState((prevState) => {
+      return {
+          ...prevState,
+          imagePickerResponse:response
+      }
+    },() => {
+      this.updateParentState();
+    });
+	}
+
+	// update the button state after the user picked an image or did undo
+	toggleButtonFace() {
+	    this.setState((prevState) => {
+		  return {
+			  ...prevState,
+			  enableUndo:!prevState.enableUndo
+		  }
+		});
+	}
+	
+  // TODO: remove the parameters if they have no use anymore. 
+  pressHandler(key,value,data) {
+    const updateParentState = () => {
+//       const value = this.state[this.props.data.typeName].selected ? this.state[this.props.data.typeName].value : '';
+//       this.props.onFormGroupValueChange(value, data);
+    };
+
+	// the button is either in undo or imagepicker mode
+	if(this.state.enableUndo) {
+		// Undo, revert to the default screenshot and toggle button face
+		this.toggleButtonFace();
+		this.setImagePickerResponse(null);
+	} else {
+		ImagePicker.launchImageLibrary(
+		  {
+			mediaType: 'photo',
+			includeBase64: false,
+			maxHeight: this.props.maxImageHeight,
+			maxWidth: this.props.maxImageWidth,
+		  },
+		  (response) => {
+		  // TODO: process the response for the right type, perhaps conversion
+		  if(response && response.uri !== "") {
+		  	console.log('ImagePicker response',response);
+			this.toggleButtonFace();
+
+			this.setImagePickerResponse(response);
+		  }
+// 			setResponse(response);
+		  },
+		);
+	}
+  }
+  
+  render() {
+	const { data } = this.props;
+	const styles = StyleSheet.create({
+	  button: {
+		height:36,
+// 		zIndex:-1,
+		paddingHorizontal:3,
+		alignItems:'center',
+		justifyContent:'center',
+		flexDirection:'row',
+		marginTop:10
+	  },
+	});
+
+      let obj = this.state;
+	  let buttonProps = {
+		text: obj.enableUndo ? this.props.undoLabel : this.props.pickLabel,
+		raised:false,
+	    onPress:this.pressHandler.bind(this, 'picked_image', obj.enableUndo,data),
+// 		isToggle:true,
+// 		selected:false,
+		border:true,
+		buttonType:'toggle',
+		icon: obj.enableUndo ? 'undo' : 'pictureO'
+	  };
+
+	return (
+	  this.state.visible ?
+	  (
+		<View style={styles.button}>
+			<Button {...buttonProps} />
+		</View>
+	  )
+	  : null
+	);
+  }
+}
 
 export default class ScreenshotBlock extends React.Component {
 
@@ -10,6 +141,10 @@ export default class ScreenshotBlock extends React.Component {
     screenshotCheckboxLabel:'Send screenshot with feedback?'
   };
 
+  defaultScreenshotURI() {
+  	return   `data:image/png;base64,${this.props.formGroupState.screenshot}`;
+  }
+  
   constructor(props) {
     super(props);
     this.thumbnailRatio = 0.25; // in relation to the height of the display
@@ -24,7 +159,8 @@ export default class ScreenshotBlock extends React.Component {
       thumbnailWidth:maxWidth,
       thumbnailHeight:maxHeight,
       sizeSet:false,
-      modalVisible:false
+      modalVisible:false,
+      screenshotURI:this.defaultScreenshotURI()
     };
 
     this.state[this.props.data.typeName] = {
@@ -34,16 +170,16 @@ export default class ScreenshotBlock extends React.Component {
   }
 
   async UNSAFE_componentWillMount() {
-    this.getSetImageSize()
+    this.initImageSizes()
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.formGroupState.screenshot && !this.state.sizeSet) {
-      this.getSetImageSize();
+      this.initImageSizes();
     }
   }
 
-  getSetImageSize() {
+  initImageSizes() {
 
     const { formGroupState } = this.props;
 
@@ -130,7 +266,7 @@ export default class ScreenshotBlock extends React.Component {
             <View style={styles.centeredView}>
               <View style={styles.modalBackgroundView}>
                 <Image
-                  source={{uri:`data:image/png;base64,${formGroupState.screenshot}`}}
+                  source={{uri:this.state.screenshotURI}}
                   style={styles.overlayImage}
                 />
               </View>
@@ -139,7 +275,6 @@ export default class ScreenshotBlock extends React.Component {
           )
           : null
         );
-    
     
   };
 
@@ -153,7 +288,7 @@ export default class ScreenshotBlock extends React.Component {
     };
 
     return(
-      this.state.sizeSet ?
+      this.state && this.state.sizeSet ?
       (
         <TouchableOpacity style={thumbnailStyle} 
         onPressIn={() => {
@@ -164,7 +299,7 @@ export default class ScreenshotBlock extends React.Component {
         }}
         >
       <Image
-        source={{uri:`data:image/png;base64,${formGroupState.screenshot}`}}
+        source={{uri:this.state.screenshotURI}}
         style={thumbnailStyle}
         resizeMode={'contain'}
       />
@@ -192,6 +327,20 @@ export default class ScreenshotBlock extends React.Component {
     });
   }
 
+	// when an image has been picked or reset to default screenshot
+	onImagePicked(imageType, imageURI){
+		this.setState((prevState) => {
+		  return {
+    	      ...prevState,
+        	  userPickedImageType:imageType,
+        	  userPickedImageURI:imageURI,
+        	  screenshotURI: imageURI ? imageURI : this.defaultScreenshotURI()
+		  }
+		},() => {
+// 		  this.updateParentState(); // TODO: implement setting screenshotdata
+		});
+	}
+
   screenshotContainer() {
     let screenshotContainerStyle = {
       ...Platform.select({
@@ -210,15 +359,36 @@ export default class ScreenshotBlock extends React.Component {
       width:this.state.thumbnailWidth
     };
 
-    // if (Platform.OS !== 'android') {
-      Object.assign(screenshotContainerStyle, {height:this.state.thumbnailHeight,width:this.state.thumbnailWidth})
-    // }
+      const { data, formGroupState } = this.props;
 
-    return(
+    let controlProps = {
+		data: this.props.data,
+		formGroupState: this.props.formGroupState,
+		onImagePicked: this.onImagePicked.bind(this),
+		maxImageWidth: Dimensions.get('window').width,
+		maxImageHeight: Dimensions.get('window').height
+//       onPress:this.pressHandler.bind(this,data.typeName,'send_screenshot',data),
+    };
+
+	// only add these imagepickerlabel props if they exist
+    if (this.props.data.pickLabel !== 'undefined') {
+      Object.assign(controlProps, {pickLabel:this.props.data.pickLabel})
+    }
+    if (this.props.data.undoLabel !== 'undefined') {
+      Object.assign(controlProps, {undoLabel:this.props.data.undoLabel})
+    }
+
+
+  return(
+  	<View>
       <View style={screenshotContainerStyle}>
         { this.renderThumbnail() }
         { this.renderOverlay() }
       </View>
+      <View style={{width:screenshotContainerStyle.width}}>
+        <ImagePickerControl {...controlProps}></ImagePickerControl>
+      </View>
+    </View>
     );
   }
 
