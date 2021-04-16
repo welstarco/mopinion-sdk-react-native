@@ -62,7 +62,8 @@ class FormGroup extends React.Component {
   }
 
   onChildGroupValueChange(value,data) {
-    this.props.updateFormState({value:value},data,this.props.elementIndex);
+	const updateValue = typeof value === 'object' ? value : {value};
+    this.props.updateFormState(updateValue,data,this.props.elementIndex);
   }
 
   getBlock() { 

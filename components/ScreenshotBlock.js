@@ -14,8 +14,8 @@ class ImagePickerControl extends React.Component {
   static defaultProps = {
     pickLabel:'Pick',
     undoLabel:'Undo',
-    maxImageWidth:180,
-    maxImageHeight:320,
+    maxImageWidth:320,
+    maxImageHeight:480,
   };
 
   constructor(props) {
@@ -30,14 +30,14 @@ class ImagePickerControl extends React.Component {
   }
 
 	updateParentState() {
-//       const value = this.state[this.props.data.typeName].selected ? this.state[this.props.data.typeName].value : '';
-//       this.props.onFormGroupValueChange(value, data);
 		// callback to pass the selected image type and uri 
 		if (typeof this.props.onImagePicked === 'function') {
-			if(this.state.imagePickerResponse !== null) {
-				this.props.onImagePicked(this.state.imagePickerResponse.type, this.state.imagePickerResponse.uri);
+			if(this.state.imagePickerResponse != null) {
+				this.props.onImagePicked(this.state.imagePickerResponse.type, 
+										this.state.imagePickerResponse.uri, 
+										this.state.imagePickerResponse.base64);
 			} else {
-				this.props.onImagePicked(null, null);
+				this.props.onImagePicked(null, null, null);
 			}
 		}
 	}
@@ -65,10 +65,6 @@ class ImagePickerControl extends React.Component {
 	
   // TODO: remove the parameters if they have no use anymore. 
   pressHandler(key,value,data) {
-    const updateParentState = () => {
-//       const value = this.state[this.props.data.typeName].selected ? this.state[this.props.data.typeName].value : '';
-//       this.props.onFormGroupValueChange(value, data);
-    };
 
 	// the button is either in undo or imagepicker mode
 	if(this.state.enableUndo) {
@@ -79,19 +75,17 @@ class ImagePickerControl extends React.Component {
 		ImagePicker.launchImageLibrary(
 		  {
 			mediaType: 'photo',
-			includeBase64: false,
+			includeBase64: true,
 			maxHeight: this.props.maxImageHeight,
 			maxWidth: this.props.maxImageWidth,
 		  },
 		  (response) => {
-		  // TODO: process the response for the right type, perhaps conversion
-		  if(response && response.uri !== "") {
-		  	console.log('ImagePicker response',response);
-			this.toggleButtonFace();
+			  // TODO: process the response for the right type, perhaps conversion
+			  if(response && response.uri !== "") {
+				this.toggleButtonFace();
 
-			this.setImagePickerResponse(response);
-		  }
-// 			setResponse(response);
+				this.setImagePickerResponse(response);
+			  }
 		  },
 		);
 	}
@@ -142,7 +136,7 @@ export default class ScreenshotBlock extends React.Component {
   };
 
   defaultScreenshotURI() {
-  	return   `data:image/png;base64,${this.props.formGroupState.screenshot}`;
+  	return   'data:image/png;base64,${this.props.formGroupState.screenshot}';
   }
   
   constructor(props) {
@@ -160,7 +154,8 @@ export default class ScreenshotBlock extends React.Component {
       thumbnailHeight:maxHeight,
       sizeSet:false,
       modalVisible:false,
-      screenshotURI:this.defaultScreenshotURI()
+      screenshotURI:`data:image/png;base64,${this.props.formGroupState.screenshot}`,
+    defaultScreenshotURI:`data:image/png;base64,${this.props.formGroupState.screenshot}`
     };
 
     this.state[this.props.data.typeName] = {
@@ -328,16 +323,21 @@ export default class ScreenshotBlock extends React.Component {
   }
 
 	// when an image has been picked or reset to default screenshot
-	onImagePicked(imageType, imageURI){
+	onImagePicked(imageType, imageURI, imageDataBase64){
+		const updateParentState = () => {
+		  const value = imageDataBase64 ? `data:${imageType};base64,${imageDataBase64}` : this.state.defaultScreenshotURI;
+		  this.props.onFormGroupValueChange({screenshot:value}, this.props.data);
+		};
+		
 		this.setState((prevState) => {
 		  return {
     	      ...prevState,
         	  userPickedImageType:imageType,
         	  userPickedImageURI:imageURI,
-        	  screenshotURI: imageURI ? imageURI : this.defaultScreenshotURI()
+        	  screenshotURI: imageURI ? imageURI : this.state.defaultScreenshotURI
 		  }
 		},() => {
-// 		  this.updateParentState(); // TODO: implement setting screenshotdata
+		  updateParentState();
 		});
 	}
 

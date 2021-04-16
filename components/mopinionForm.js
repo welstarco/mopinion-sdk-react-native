@@ -719,7 +719,14 @@ export class Mopinion extends React.Component {
 
 				} else if (block.field.indexOf('screenshot') > -1) {
 					//only send screenie if value checkbox is toggled
-					feedbackValue = feedbackObj.value === 'send_screenshot' && this.props.screenshot != null && this.props.screenshot != "" ? this.props.screenshot : '';
+					if (feedbackObj.value === 'send_screenshot') {
+						feedbackValue = feedbackObj.screenshot ? feedbackObj.screenshot : this.props.screenshot
+						if (feedbackValue == null) { 
+							feedbackValue = '';
+						}
+					} else {
+						feedbackValue = '';
+					}
 				} else {
 					feedbackValue = feedbackObj.value || '';
 				}
