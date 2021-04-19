@@ -1,6 +1,6 @@
 import React from 'react';
 // import PropTypes from 'prop-types';
-import { Dimensions, Modal, View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { Alert, Dimensions, Modal, View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Control from './Control';
 import ErrorMessage from './ErrorMessage';
 import Button from './Button';
@@ -63,6 +63,20 @@ class ImagePickerControl extends React.Component {
 		});
 	}
 	
+	validatePickedImage(response) {
+		if(response && response.uri !== "" ) {
+			switch(response.type) {
+				case 'image/png':
+				case 'image/jpg':
+					break;
+				default:
+					Alert.alert('Unsupported Image', `Format '${response.type}' is not supported. Please select a JPG or PNG image.`);
+					return false;
+			}
+		}
+		return true;
+	}
+	
   // TODO: remove the parameters if they have no use anymore. 
   pressHandler(key,value,data) {
 
@@ -80,8 +94,8 @@ class ImagePickerControl extends React.Component {
 			maxWidth: this.props.maxImageWidth,
 		  },
 		  (response) => {
-			  // TODO: process the response for the right type, perhaps conversion
-			  if(response && response.uri !== "") {
+			  // process the response for the right type
+			  if(response && response.uri !== ""  && response.didCancel !== true && this.validatePickedImage(response) ) {
 				this.toggleButtonFace();
 
 				this.setImagePickerResponse(response);
@@ -132,13 +146,10 @@ class ImagePickerControl extends React.Component {
 export default class ScreenshotBlock extends React.Component {
 
   static defaultProps = {
-    screenshotCheckboxLabel:'Send screenshot with feedback?'
+    screenshotCheckboxLabel:'Send screenshot with feedback?',
+    screenshotImageType:'image/png'
   };
 
-  defaultScreenshotURI() {
-  	return   'data:image/png;base64,${this.props.formGroupState.screenshot}';
-  }
-  
   constructor(props) {
     super(props);
     this.thumbnailRatio = 0.25; // in relation to the height of the display
@@ -154,8 +165,8 @@ export default class ScreenshotBlock extends React.Component {
       thumbnailHeight:maxHeight,
       sizeSet:false,
       modalVisible:false,
-      screenshotURI:`data:image/png;base64,${this.props.formGroupState.screenshot}`,
-    defaultScreenshotURI:`data:image/png;base64,${this.props.formGroupState.screenshot}`
+		defaultScreenshotImageType: this.props.screenshotImageType,
+		defaultScreenshotData: this.props.formGroupState.screenshot
     };
 
     this.state[this.props.data.typeName] = {
@@ -179,7 +190,9 @@ export default class ScreenshotBlock extends React.Component {
     const { formGroupState } = this.props;
 
     if (!this.state.sizeSet && typeof formGroupState.screenshot === 'string' && formGroupState.screenshot.length) {
-      Image.getSize(`data:image/png;base64,${formGroupState.screenshot}`, (width,height) => {
+    	const imageType = formGroupState.screenshotImageType ? formGroupState.screenshotImageType : this.state.defaultScreenshotImageType;
+
+      Image.getSize(`data:${imageType};base64,${formGroupState.screenshot}`, (width,height) => {
         let maxWidth = Dimensions.get('window').width * this.overlayImageRatio;
         let maxHeight = Dimensions.get('window').height * this.overlayImageRatio;
 
@@ -227,55 +240,59 @@ export default class ScreenshotBlock extends React.Component {
     const { modalVisible } = this.state;
     const scaleAsPercentage=100*this.overlayImageRatio;
 
-        const styles = StyleSheet.create({          
-          overlayImage: {
-            position: 'absolute',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: `${scaleAsPercentage.toFixed(0)}%`,
-            height: `${scaleAsPercentage.toFixed(0)}%`,
-            resizeMode: 'contain'
-          }, 
-          modalBackgroundView: {
-             margin: 20, 
-             flex: 1, width: '100%', height: '100%', alignItems: "center", justifyContent:"center",
-             backgroundColor: "#40404080"
-          },
-          centeredView: {
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: 40
-          }
-        })
+	const styles = StyleSheet.create({          
+	  overlayImage: {
+		position: 'absolute',
+		alignItems: 'center',
+		justifyContent: 'center',
+		width: `${scaleAsPercentage.toFixed(0)}%`,
+		height: `${scaleAsPercentage.toFixed(0)}%`,
+		resizeMode: 'contain'
+	  }, 
+	  modalBackgroundView: {
+		 margin: 20, 
+		 flex: 1, width: '100%', height: '100%', alignItems: "center", justifyContent:"center",
+		 backgroundColor: "#40404080"
+	  },
+	  centeredView: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		marginTop: 40
+	  }
+	});
 
-        return (
-          this.state.sizeSet ?
-          (
-          <Modal transparent={true}
-                  visible={modalVisible} animationType='fade'
-                  onRequestClose={() => {
-                    this.setModalVisible(false);
-                  }}
-          >
-            <View style={styles.centeredView}>
-              <View style={styles.modalBackgroundView}>
-                <Image
-                  source={{uri:this.state.screenshotURI}}
-                  style={styles.overlayImage}
-                />
-              </View>
-            </View>
-          </Modal>
-          )
-          : null
-        );
+	const imageType = formGroupState.screenshotImageType ? formGroupState.screenshotImageType : this.state.defaultScreenshotImageType;
+
+	return (
+	  this.state.sizeSet ?
+	  (
+	  <Modal transparent={true}
+			  visible={modalVisible} animationType='fade'
+			  onRequestClose={() => {
+				this.setModalVisible(false);
+			  }}
+	  >
+		<View style={styles.centeredView}>
+		  <View style={styles.modalBackgroundView}>
+			<Image
+			  source={{uri:`data:${imageType};base64,${formGroupState.screenshot}`}}
+			  style={styles.overlayImage}
+			/>
+		  </View>
+		</View>
+	  </Modal>
+	  )
+	  : null
+	);
     
   };
 
   renderThumbnail() {
     const { data, formGroupState } = this.props;
 
+	const imageType = formGroupState.screenshotImageType ? formGroupState.screenshotImageType : this.state.defaultScreenshotImageType;
+	
     let thumbnailStyle = {
       flex: 1,
       // height: maxHeight,
@@ -294,7 +311,7 @@ export default class ScreenshotBlock extends React.Component {
         }}
         >
       <Image
-        source={{uri:this.state.screenshotURI}}
+        source={{uri:`data:${imageType};base64,${formGroupState.screenshot}`}}
         style={thumbnailStyle}
         resizeMode={'contain'}
       />
@@ -325,16 +342,16 @@ export default class ScreenshotBlock extends React.Component {
 	// when an image has been picked or reset to default screenshot
 	onImagePicked(imageType, imageURI, imageDataBase64){
 		const updateParentState = () => {
-		  const value = imageDataBase64 ? `data:${imageType};base64,${imageDataBase64}` : this.state.defaultScreenshotURI;
-		  this.props.onFormGroupValueChange({screenshot:value}, this.props.data);
+		  const value = imageDataBase64 ? imageDataBase64 : this.state.defaultScreenshotData;
+		  const newImageType = imageType ? imageType : this.state.defaultScreenshotImageType;
+		  this.props.onFormGroupValueChange({screenshot:value, screenshotImageType:newImageType}, this.props.data);
 		};
-		
+	
 		this.setState((prevState) => {
 		  return {
-    	      ...prevState,
-        	  userPickedImageType:imageType,
-        	  userPickedImageURI:imageURI,
-        	  screenshotURI: imageURI ? imageURI : this.state.defaultScreenshotURI
+			  ...prevState,
+			  userPickedImageType:imageType,
+			  userPickedImageURI:imageURI
 		  }
 		},() => {
 		  updateParentState();
@@ -359,15 +376,14 @@ export default class ScreenshotBlock extends React.Component {
       width:this.state.thumbnailWidth
     };
 
-      const { data, formGroupState } = this.props;
+	const { data, formGroupState } = this.props;
 
     let controlProps = {
 		data: this.props.data,
 		formGroupState: this.props.formGroupState,
 		onImagePicked: this.onImagePicked.bind(this),
-		maxImageWidth: Dimensions.get('window').width,
-		maxImageHeight: Dimensions.get('window').height
-//       onPress:this.pressHandler.bind(this,data.typeName,'send_screenshot',data),
+		maxImageWidth: Dimensions.get('screen').width,
+		maxImageHeight: Dimensions.get('screen').height
     };
 
 	// only add these imagepickerlabel props if they exist
