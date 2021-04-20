@@ -128,7 +128,7 @@ class ImagePickerControl extends React.Component {
 	  };
 
 	return (
-	  this.state.visible ?
+	  this.props.visible ?
 	  (
 		<View style={styles.button}>
 			<Button {...buttonProps} />
@@ -378,17 +378,16 @@ export default class ScreenshotBlock extends React.Component {
 		onImagePicked: this.onImagePicked.bind(this),
 		maxImageWidth: Dimensions.get('screen').width,
 		maxImageHeight: Dimensions.get('screen').height,
-		visible: this.props.data.allow_upload
+		visible: data.properties.allow_upload !== 'undefined' ? data.properties.allow_upload : false
     };
-
+	
 	// only add these imagepickerlabel props if they exist
-    if (this.props.data.pickLabel !== 'undefined') {
-      Object.assign(controlProps, {pickLabel:this.props.data.pickLabel})
+    if (data.properties.pickLabel !== 'undefined') {
+      Object.assign(controlProps, {pickLabel:data.properties.pickLabel})
     }
-    if (this.props.data.undoLabel !== 'undefined') {
-      Object.assign(controlProps, {undoLabel:this.props.data.undoLabel})
+    if (data.properties.undoLabel !== 'undefined') {
+      Object.assign(controlProps, {undoLabel:data.properties.undoLabel})
     }
-
 
   return(
   	<View>
