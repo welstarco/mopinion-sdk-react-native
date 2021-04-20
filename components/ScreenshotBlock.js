@@ -1,5 +1,4 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
 import { Alert, Dimensions, Modal, View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Control from './Control';
 import ErrorMessage from './ErrorMessage';
@@ -16,13 +15,13 @@ class ImagePickerControl extends React.Component {
     undoLabel:'Undo',
     maxImageWidth:320,
     maxImageHeight:480,
+    visible:false
   };
 
   constructor(props) {
 	super(props);
 	
 	this.state = {
-		visible:true,
 		enableUndo:false,
 		imagePickerResponse:null
 	};
@@ -77,7 +76,7 @@ class ImagePickerControl extends React.Component {
 		return true;
 	}
 	
-  // TODO: remove the parameters if they have no use anymore. 
+  // handle the pick/undo button
   pressHandler(key,value,data) {
 
 	// the button is either in undo or imagepicker mode
@@ -110,7 +109,6 @@ class ImagePickerControl extends React.Component {
 	const styles = StyleSheet.create({
 	  button: {
 		height:36,
-// 		zIndex:-1,
 		paddingHorizontal:3,
 		alignItems:'center',
 		justifyContent:'center',
@@ -124,8 +122,6 @@ class ImagePickerControl extends React.Component {
 		text: obj.enableUndo ? this.props.undoLabel : this.props.pickLabel,
 		raised:false,
 	    onPress:this.pressHandler.bind(this, 'picked_image', obj.enableUndo,data),
-// 		isToggle:true,
-// 		selected:false,
 		border:true,
 		buttonType:'toggle',
 		icon: obj.enableUndo ? 'undo' : 'pictureO'
@@ -224,8 +220,6 @@ export default class ScreenshotBlock extends React.Component {
           thumbnailWidth:thumbNailSize.width,
           // thumbnailHeight:thumbNailSize.height,
           sizeSet:true
-        // },() => {
-        //   this.props.onFormGroupValueChange('send_screenshot', this.props.data);
         })
       });
     }
@@ -383,7 +377,8 @@ export default class ScreenshotBlock extends React.Component {
 		formGroupState: this.props.formGroupState,
 		onImagePicked: this.onImagePicked.bind(this),
 		maxImageWidth: Dimensions.get('screen').width,
-		maxImageHeight: Dimensions.get('screen').height
+		maxImageHeight: Dimensions.get('screen').height,
+		visible: this.props.data.allow_upload
     };
 
 	// only add these imagepickerlabel props if they exist
