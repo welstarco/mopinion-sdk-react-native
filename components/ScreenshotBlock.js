@@ -78,7 +78,6 @@ class ImagePickerControl extends React.Component {
 	
   // handle the pick/undo button
   pressHandler(key,value,data) {
-
 	// the button is either in undo or imagepicker mode
 	if(this.state.enableUndo) {
 		// Undo, revert to the default screenshot and toggle button face
@@ -160,7 +159,7 @@ export default class ScreenshotBlock extends React.Component {
       thumbnailWidth:maxWidth,
       thumbnailHeight:maxHeight,
       sizeSet:false,
-      modalVisible:false,
+      overlayVisible:false,
 		defaultScreenshotImageType: this.props.screenshotImageType,
 		defaultScreenshotData: this.props.formGroupState.screenshot
     };
@@ -171,12 +170,8 @@ export default class ScreenshotBlock extends React.Component {
     };
   }
 
-  async UNSAFE_componentWillMount() {
-    this.initImageSizes()
-  }
-
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.formGroupState.screenshot && !this.state.sizeSet) {
+  componentDidMount() {
+    if (this.props.formGroupState.screenshot && !this.state.sizeSet) {
       this.initImageSizes();
     }
   }
@@ -225,13 +220,13 @@ export default class ScreenshotBlock extends React.Component {
     }
   }
 
-  setModalVisible = (visible) => {
-    this.setState({ modalVisible: visible });
+  setOverlayVisible = (visible) => {
+    this.setState({ overlayVisible: visible });
   }
 
   renderOverlay = () => {
     const { data, formGroupState } = this.props;
-    const { modalVisible } = this.state;
+    const { overlayVisible } = this.state;
     const scaleAsPercentage=100*this.overlayImageRatio;
 
 	const styles = StyleSheet.create({          
@@ -261,10 +256,10 @@ export default class ScreenshotBlock extends React.Component {
 	return (
 	  this.state.sizeSet ?
 	  (
-	  <Modal transparent={true}
-			  visible={modalVisible} animationType='fade'
+	  <Modal transparent={true} supportedOrientations={['landscape', 'portrait']}
+			  visible={overlayVisible} animationType='fade'
 			  onRequestClose={() => {
-				this.setModalVisible(false);
+				this.setOverlayVisible(false);
 			  }}
 	  >
 		<View style={styles.centeredView}>
@@ -298,10 +293,10 @@ export default class ScreenshotBlock extends React.Component {
       (
         <TouchableOpacity style={thumbnailStyle} 
         onPressIn={() => {
-          this.setModalVisible(true);
+          this.setOverlayVisible(true);
         }}
         onPressOut={() => {
-          this.setModalVisible(false);
+          this.setOverlayVisible(false);
         }}
         >
       <Image

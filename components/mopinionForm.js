@@ -941,11 +941,11 @@ export class Mopinion extends React.Component {
 					startOpen={this.static}
 					animationDuration={this.static ? 0 : this.props.modalAnimationDuration}
 				>
-					<Header
-						onPressLeft={() => this.toggleModal()}
-						title={!this.state.formIsFullySubmmitted ? this.state.formConfig.properties.title : this.state.formConfig.text.lastPageTitle ? this.state.formConfig.text.lastPageTitle : this.state.formConfig.properties.title}
-					/>
 					<SafeAreaView style={{flex:1}}>
+						<Header
+							onPressLeft={() => this.toggleModal()}
+							title={!this.state.formIsFullySubmmitted ? this.state.formConfig.properties.title : this.state.formConfig.text.lastPageTitle ? this.state.formConfig.text.lastPageTitle : this.state.formConfig.properties.title}
+						/>
 						<ScrollView
 							style={styles.container}
 							automaticallyAdjustContentInsets

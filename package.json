@@ -22,7 +22,7 @@
     "devtools": "react-devtools"
   },
   "dependencies": {
-    "@mopinion-mobile/react-native-material-dropdown": "^1.0.0",
+    "@mopinion-mobile/react-native-material-dropdown": "^1.0.1",
     "rn-material-ui-textfield": "^1.0.2",
     "create-react-class": "^15.6.3"
   },
