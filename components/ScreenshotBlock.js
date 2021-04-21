@@ -161,7 +161,8 @@ export default class ScreenshotBlock extends React.Component {
       sizeSet:false,
       overlayVisible:false,
 		defaultScreenshotImageType: this.props.screenshotImageType,
-		defaultScreenshotData: this.props.formGroupState.screenshot
+		defaultScreenshotData: this.props.formGroupState.screenshot,
+		defaultThumbnailWidth:maxWidth
     };
 
     this.state[this.props.data.typeName] = {
@@ -171,19 +172,20 @@ export default class ScreenshotBlock extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.formGroupState.screenshot && !this.state.sizeSet) {
-      this.initImageSizes();
+    const { formGroupState } = this.props;
+
+    if (formGroupState.screenshot && !this.state.sizeSet) {
+	  const imageType = formGroupState.screenshotImageType ? formGroupState.screenshotImageType : this.state.defaultScreenshotImageType;
+
+      this.initImageSizes(`data:${imageType};base64,${formGroupState.screenshot}`);
     }
   }
 
-  initImageSizes() {
+  initImageSizes(imageURI) {
 
-    const { formGroupState } = this.props;
+    if (typeof imageURI === 'string' && imageURI !== '') {
 
-    if (!this.state.sizeSet && typeof formGroupState.screenshot === 'string' && formGroupState.screenshot.length) {
-    	const imageType = formGroupState.screenshotImageType ? formGroupState.screenshotImageType : this.state.defaultScreenshotImageType;
-
-      Image.getSize(`data:${imageType};base64,${formGroupState.screenshot}`, (width,height) => {
+      Image.getSize(imageURI, (width,height) => {
         let maxWidth = Dimensions.get('window').width * this.overlayImageRatio;
         let maxHeight = Dimensions.get('window').height * this.overlayImageRatio;
 
@@ -247,7 +249,7 @@ export default class ScreenshotBlock extends React.Component {
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
-		marginTop: 40
+		marginTop: 30
 	  }
 	});
 
@@ -283,9 +285,7 @@ export default class ScreenshotBlock extends React.Component {
 	const imageType = formGroupState.screenshotImageType ? formGroupState.screenshotImageType : this.state.defaultScreenshotImageType;
 	
     let thumbnailStyle = {
-      flex: 1,
-      // height: maxHeight,
-      // width: '100%' // maxWidth
+      flex: 1
     };
 
     return(
@@ -335,7 +335,13 @@ export default class ScreenshotBlock extends React.Component {
 		  const newImageType = imageType ? imageType : this.state.defaultScreenshotImageType;
 		  this.props.onFormGroupValueChange({screenshot:value, screenshotImageType:newImageType}, this.props.data);
 		};
-	
+
+		if(imageURI) {
+	      this.initImageSizes(imageURI);
+		} else {
+		  this.setState({ thumbnailWidth:this.state.defaultThumbnailWidth });
+		}	
+
 		this.setState((prevState) => {
 		  return {
 			  ...prevState,
@@ -365,6 +371,11 @@ export default class ScreenshotBlock extends React.Component {
       width:this.state.thumbnailWidth
     };
 
+    let buttonContainerStyle = {
+      flexDirection: 'column',
+      alignSelf: 'flex-start',
+    };
+
 	const { data, formGroupState } = this.props;
 
     let controlProps = {
@@ -390,7 +401,7 @@ export default class ScreenshotBlock extends React.Component {
         { this.renderThumbnail() }
         { this.renderOverlay() }
       </View>
-      <View style={{width:screenshotContainerStyle.width}}>
+      <View style={buttonContainerStyle}>
         <ImagePickerControl {...controlProps}></ImagePickerControl>
       </View>
     </View>
