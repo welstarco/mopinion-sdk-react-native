@@ -1,7 +1,7 @@
 {
   "name": "mopinion-react-native-sdk",
   "description": "Changes, based on original version 1.4.1. Collect in-app feedback with Mopinion for React Native. Built fully in React Native for optimal integration with your RN app.",
-  "version": "1.4.2.beta",
+  "version": "1.4.2.beta.1",
   "devDependencies": {
     "babel-preset-react-native-stage-0": "^1.0.1",
     "react-devtools": "^3.2.1",
@@ -22,7 +22,7 @@
     "devtools": "react-devtools"
   },
   "dependencies": {
-    "@mopinion-mobile/react-native-material-dropdown": "^1.0.1",
+    "@mopinion-mobile/react-native-material-dropdown": "^1.0.2",
     "rn-material-ui-textfield": "^1.0.2",
     "create-react-class": "^15.6.3"
   },
