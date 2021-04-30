@@ -118,8 +118,8 @@ class Rating extends Component {
         this.labelRefs.forEach( (ref,i) => {
           if(i>=tmp_labelHeights.length 
              && typeof this.refs[ref] !== 'undefined'
-             && typeof this.refs[ref].measure !== 'undefined') {
-            this.refs[ref].measure((ox, oy, width, height, px, py) => {
+             && typeof this.refs[ref]._component.measure !== 'undefined') {
+            this.refs[ref]._component.measure((ox, oy, width, height, px, py) => {
               // if a label is not visible, the height will be 0. Don't set labelHeights for invisible items!
               if(height>0) { 
                 tmp_labelHeights[i]=height+1; // add margin=1 above text
@@ -139,6 +139,31 @@ class Rating extends Component {
     }
   }
 
+  /* Calculate height of all labels and store in this.state.labelHeight[]  
+     Ratings that start hidden will have no labelRefs.
+     The labelRefs are only set during their render by the _label() function when made visible.
+     This function is optimised for use in componentDidUpdate. */
+  updateLabelHeights() {
+	this.labelRefs.forEach( (ref,i) => {
+    // for some rating types this property will be === 'undefined' which is ok as they have no labels anyway :)
+		if(this.props.data.properties.showCaptions) {
+		  if(typeof this.refs[ref] !== 'undefined'
+			 && typeof this.refs[ref]._component.measure !== 'undefined') {
+			this.refs[ref]._component.measure((ox, oy, width, height, px, py) => {
+			  var prevHeight = (typeof this.state.labelHeight[i] !== 'undefined') ? this.state.labelHeight[i] : 0;
+			  if(height > prevHeight) {
+				  this.setState((prevState) => {
+					return {
+					  labelHeight:Object.assign([...prevState.labelHeight],{[i]:height})
+					}
+				  })
+			  }
+			})
+		  }
+		}
+	})
+  }
+
   componentDidMount() {
     setTimeout(() =>  {
       this.setLabelHeightsInitially();
@@ -146,7 +171,7 @@ class Rating extends Component {
   }
 
   componentDidUpdate() {
-    this.setLabelHeightsInitially();
+    this.updateLabelHeights();
   }
 
   scoresAsArray() {
