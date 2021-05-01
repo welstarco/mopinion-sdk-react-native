@@ -107,23 +107,28 @@ class Rating extends Component {
   /* Calculate height of all labels and store in this.state.labelHeight[]  
      Ratings that start hidden will have no labelRefs.
      The labelRefs are only set during their render by the _label() function when made visible.
-     This function is optimised for use in componentDidUpdate. */
+     This function can use both measure methods from the refs API change between RN 0.61.5 and 0.64. */
   updateLabelHeights() {
 	this.labelRefs.forEach( (ref,i) => {
     // for some rating types this property will be === 'undefined' which is ok as they have no labels anyway :)
 		if(this.props.data.properties.showCaptions) {
-		  if(typeof this.refs[ref] !== 'undefined'
-			 && typeof this.refs[ref]._component.measure !== 'undefined') {
-			this.refs[ref]._component.measure((ox, oy, width, height, px, py) => {
-			  var prevHeight = (typeof this.state.labelHeight[i] !== 'undefined') ? this.state.labelHeight[i] : 0;
-			  if(height > prevHeight) {
-				  this.setState((prevState) => {
-					return {
-					  labelHeight:Object.assign([...prevState.labelHeight],{[i]:height})
-					}
-				  })
-			  }
-			})
+		  if(typeof this.refs[ref] !== 'undefined') {
+		  	var curComponent = this.refs[ref];	// assume RN 0.64
+			 if(typeof this.refs[ref]._component !== 'undefined') {
+			 	curComponent = this.refs[ref]._component;	// RN 0.61.5
+			 }
+			 if(typeof curComponent.measure !== 'undefined') {
+				curComponent.measure((ox, oy, width, height, px, py) => {
+				  var prevHeight = (typeof this.state.labelHeight[i] !== 'undefined') ? this.state.labelHeight[i] : 0;
+				  if(height > prevHeight) {
+					  this.setState((prevState) => {
+						return {
+						  labelHeight:Object.assign([...prevState.labelHeight],{[i]:height})
+						}
+					  })
+				  }
+				})
+			 }
 		  }
 		}
 	})
