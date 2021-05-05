@@ -123,7 +123,8 @@ class FormGroup extends React.Component {
     } else if (data.typeName === 'screenshot') { 
 
       blockProps.screenshotCheckboxLabel = this.props.screenshotCheckboxLabel;
-      
+      blockProps.screenshotCaption = this.props.screenshotCaption;
+
       return (
         <ScreenshotBlock {...blockProps}  />
       );

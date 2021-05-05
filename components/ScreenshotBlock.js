@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Dimensions, Modal, View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { Alert, Dimensions, Modal, View, StyleSheet, Image, Text, TouchableOpacity } from 'react-native';
 import Control from './Control';
 import ErrorMessage from './ErrorMessage';
 import Button from './Button';
@@ -142,6 +142,7 @@ export default class ScreenshotBlock extends React.Component {
 
   static defaultProps = {
     screenshotCheckboxLabel:'Send screenshot with feedback?',
+    screenshotCaption: 'Please don\'t share personal information via this screenshot',
     screenshotImageType:'image/png'
   };
 
@@ -268,8 +269,7 @@ export default class ScreenshotBlock extends React.Component {
 		  <View style={styles.modalBackgroundView}>
 			<Image
 			  source={{uri:`data:${imageType};base64,${formGroupState.screenshot}`}}
-			  style={styles.overlayImage}
-			/>
+			  style={styles.overlayImage}/>
 		  </View>
 		</View>
 	  </Modal>
@@ -308,6 +308,18 @@ export default class ScreenshotBlock extends React.Component {
       )
       : null
     );
+  }
+  
+  renderThumbailCaption() {
+    let captionSmallFontStyle = {
+      fontSize: 11, color:'#727272', paddingTop:4
+    };
+
+  	return(
+  		<Text style={captionSmallFontStyle}>
+  			{this.props.screenshotCaption}
+  		</Text>
+  	);
   }
 
   pressHandler(key,value,data) {
@@ -423,6 +435,7 @@ export default class ScreenshotBlock extends React.Component {
     return (
       <View>
         { this.screenshotContainer() }
+		{ this.renderThumbailCaption() }
         <Control {...controlProps} />
       </View>
     );    

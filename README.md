@@ -33,6 +33,16 @@ react-native link @react-native-async-storage/async-storage
 react-native link react-native-webview
 ```
 
+4. Optional: Image upload functionality
+
+The SDK allows users to pick an image from her/his mobile device to upload as a screenshot. 
+To enable this on iOS, in Xcode make sure to add the `Privacy - Photo Library Usage Description` permission to the `Info.plist` of your app if it is missing :
+
+```
+<key>NSPhotoLibraryUsageDescription</key>
+	<string>To use an image from your library as a screenshot</string>
+```
+
 ## Implementing the SDK
 
 Import the Mopinion SDK in your main app file:
